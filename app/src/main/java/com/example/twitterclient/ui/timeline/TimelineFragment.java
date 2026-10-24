@@ -1,5 +1,5 @@
 package com.example.twitterclient.ui.timeline;
-
+import android.widget.TextView;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -48,7 +48,8 @@ public class TimelineFragment extends Fragment {
         recyclerView.setAdapter(adapter);
         view.findViewById(R.id.compose_button).setOnClickListener(v -> showComposeDialog());
         loadTweets();
-        Button logoutButton = view.findViewById(R.id.buttonLogout);
+        TextView logoutButton =
+                view.findViewById(R.id.buttonLogout);
 
         logoutButton.setOnClickListener(v -> {
             // Delete the locally stored JWT and username
@@ -60,7 +61,7 @@ public class TimelineFragment extends Fragment {
             // Return to the login screen
             ((MainActivity) requireActivity()).showLogin();
         });
-        Button profileButton =
+        TextView profileButton =
                 view.findViewById(R.id.buttonProfile);
 
         profileButton.setOnClickListener(v -> {
