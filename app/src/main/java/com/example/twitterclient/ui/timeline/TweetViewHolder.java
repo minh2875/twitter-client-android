@@ -17,6 +17,7 @@ public class TweetViewHolder extends RecyclerView.ViewHolder {
         displayName = itemView.findViewById(R.id.tweet_display_name);
         username = itemView.findViewById(R.id.tweet_username);
         content = itemView.findViewById(R.id.tweet_content);
+
     }
 
     public void bind(Tweet tweet) {
@@ -24,4 +25,12 @@ public class TweetViewHolder extends RecyclerView.ViewHolder {
         username.setText("@" + tweet.getUsername());
         content.setText(tweet.getText());
     }
+
+    public void setOnAuthorClickListener(
+            View.OnClickListener listener
+    ) {
+        displayName.setOnClickListener(listener);
+        username.setOnClickListener(listener);
+    }
+
 }

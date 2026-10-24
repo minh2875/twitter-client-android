@@ -38,22 +38,39 @@ public class TweetRepository {
         }, error -> callback.onError(describe(error)));
     }
 
-    public void createTweet(String username, String content, Callback<Tweet> callback) {
+
+    public void createTweet(
+            String content,
+            Callback<Tweet> callback
+    ) {
         try {
             JSONObject body = new JSONObject();
-            body.put("username", username);
+
+            // The backend identifies the author using JWT.
             body.put("content", content);
-            api.createPost(body, response -> {
-                try {
-                    callback.onSuccess(toTweet(response.getJSONObject("post")));
-                } catch (JSONException error) {
-                    callback.onError("Invalid server response: " + error.getMessage());
-                }
-            }, error -> callback.onError(describe(error)));
+
+            api.createPost(
+                    body,
+                    response -> {
+                        try {
+                            callback.onSuccess(
+                                    toTweet(response.getJSONObject("post"))
+                            );
+                        } catch (JSONException error) {
+                            callback.onError(
+                                    "Invalid server response: "
+                                            + error.getMessage()
+                            );
+                        }
+                    },
+                    error -> callback.onError(describe(error))
+            );
+
         } catch (JSONException error) {
             callback.onError("Could not create request");
         }
     }
+
 
     private static Tweet toTweet(JSONObject item) throws JSONException {
         String username = item.getString("username");

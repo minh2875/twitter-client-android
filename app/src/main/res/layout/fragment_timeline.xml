@@ -15,6 +15,17 @@
         android:textColor="@android:color/black"
         android:textSize="22sp"
         android:textStyle="bold" />
+    <Button
+        android:id="@+id/buttonLogout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Logout" />
+    <Button
+        android:id="@+id/buttonProfile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Profile"
+        android:textAllCaps="false" />
 
     <View
         android:layout_width="match_parent"

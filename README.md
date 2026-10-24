@@ -1,212 +1,99 @@
-# USTH Twitter Starter
+# USTH Twitter — Android Client & Express Backend
 
-A basic Twitter-like Android application developed in **Java and XML**, connected to a **Node.js/Express REST API** and a **MySQL database**.
+A Twitter-like mobile application built as a USTH group project. The Android client is written in **Java/XML** and communicates with a **Node.js/Express** API backed by **MySQL**. This is an educational prototype, not an official X/Twitter client.
 
-This project is being developed incrementally as a group project for the Mobile Application Development course at USTH.
+## Project status
 
-## 1. Project Overview
+**Implemented and tested locally:**
 
-The project consists of two main components:
+- Account registration with unique username/email and bcrypt password hashing.
+- Login with JWT authentication (24-hour access token).
+- Android login and registration screens using Fragments.
+- Local session persistence using `SharedPreferences`.
+- Timeline populated from MySQL via `GET /api/posts`, newest first.
+- Compose and publish tweets (up to 280 characters) through Volley.
+- Authenticated tweet creation: Express verifies a Bearer JWT and obtains the author's username from the authenticated account, **not** from a client-supplied username.
+- Posts remain in MySQL after the app or server restarts.
 
-- **Android Client:** Displays tweets retrieved from the backend and allows users to publish new tweets.
-- **Backend Server:** An Express REST API responsible for storing and retrieving tweets through MySQL.
+**Verified during development:** creating `student2`, logging in, and publishing posts attributed to `student2`; older test posts retain their original usernames. Invalid login credentials return HTTP 401.
 
-Unlike the initial version, which used hardcoded sample tweets, the updated Android application now communicates directly with the backend using **Volley**.
+**Not implemented yet:** an in-app logout button, expired-token recovery, production-ready credential storage, user profiles, follow relationships, likes/replies/retweets, search, media, notifications, and production deployment.
 
-**Current status:** Backend endpoints have been tested successfully. Android API integration has been implemented and is awaiting final testing on the emulator.
+## Tech stack
 
-## 2. Technologies Used
-
-| Component | Technology |
+| Layer | Technology |
 |---|---|
-| Android | Java, Android SDK |
-| User interface | XML layouts |
-| Timeline | RecyclerView |
-| Networking | Volley |
-| Backend | Node.js, Express |
-| Database | MySQL 8.0 |
-| Data exchange | HTTP, JSON |
-| Build systems | Gradle, npm |
-| Development tools | Android Studio, VS Code |
-| Version control | Git, GitHub |
+| Android | Java, XML, AndroidX Fragments, RecyclerView |
+| HTTP client | Volley |
+| Backend | Node.js, Express (CommonJS) |
+| Database | MySQL 8.x, `mysql2/promise` |
+| Authentication | `bcrypt`, `jsonwebtoken` (JWT) |
+| Configuration | `dotenv` (`backend/.env`, not committed) |
+| Tooling | Android Studio, Gradle, npm, Git |
 
-## 3. Implemented Features
-
-### 3.1 Android Client
-
-**Timeline**
-
-- Retrieves tweets from the Express backend through `GET /api/posts`.
-- Displays tweets using RecyclerView.
-- Shows each tweet's author username and text.
-- Displays posts in newest-first order, as returned by the backend.
-- Requests tweets when the timeline screen is opened.
-
-**Compose Tweet**
-
-- Users can tap **Write a Tweet** to open a text input dialog.
-- Supports messages up to 280 characters.
-- Rejects empty messages.
-- Sends a `POST /api/posts` request to publish the tweet.
-- Reloads the timeline after a successful response.
-- Displays a message when posting succeeds or fails.
-
-**Networking**
-
-- Uses Volley for asynchronous HTTP requests.
-- Connects to the Windows-hosted backend using `10.0.2.2:3000` from the Android emulator.
-- Converts JSON responses into Java `Tweet` objects.
-- Displays basic error messages when the server is unreachable or returns an error.
-
-### 3.2 Backend Server
-
-**REST API**
-
-- Built with Node.js and Express.
-- Runs on port `3000` by default.
-- Accepts JSON request bodies.
-- Returns JSON responses.
-- Provides basic validation and error handling.
-
-**MySQL integration**
-
-- Uses the `mysql2` package to connect to MySQL.
-- Stores posts in the `usth_twitter` database.
-- Uses parameterized SQL queries when inserting posts.
-- Retrieves stored tweets in newest-first order.
-- Preserves tweet data after application and server restarts.
-
-### 3.3 Implemented API Endpoints
-
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/api/health` | Check server and database availability |
-| GET | `/api/posts` | Retrieve stored tweets |
-| POST | `/api/posts` | Create and save a new tweet |
-
-Example GET response:
-
-```json
-{
-  "posts": [
-    {
-      "id": 1,
-      "username": "student",
-      "content": "Hello from our first Twitter backend!",
-      "created_at": "2026-10-21T16:42:09.000Z"
-    }
-  ]
-}
-```
-
-Example POST request:
-
-```json
-{
-  "username": "student",
-  "content": "Hello from Android!"
-}
-```
-
-A successful POST returns HTTP status `201` and the newly created post.
-
-## 4. Project Architecture
+## Repository layout
 
 ```text
-Android Application
-        |
-        v
-TimelineFragment
-        |
-        v
-TweetRepository
-        |
-        v
-ApiService (Volley)
-        |
-        | HTTP / JSON
-        v
-Express REST API
-        |
-        v
-MySQL Database
+app/src/main/
+├── java/com/example/twitterclient/
+│   ├── MainActivity.java
+│   ├── auth/SessionManager.java
+│   ├── model/Tweet.java
+│   ├── network/ApiService.java
+│   ├── repository/
+│   │   ├── AuthRepository.java
+│   │   └── TweetRepository.java
+│   └── ui/
+│       ├── auth/
+│       │   ├── LoginFragment.java
+│       │   └── RegisterFragment.java
+│       └── timeline/
+│           ├── TimelineFragment.java
+│           ├── TweetAdapter.java
+│           └── TweetViewHolder.java
+├── res/layout/
+│   ├── fragment_login.xml
+│   ├── fragment_register.xml
+│   └── fragment_timeline.xml
+└── AndroidManifest.xml
+backend/
+├── server.js
+├── package.json
+└── package-lock.json
+README.md
 ```
 
-**Component responsibilities**
+This diagram highlights important files, not every generated/configuration file.
 
-- `MainActivity`: Hosts the Android timeline screen.
-- `TimelineFragment`: Manages the timeline and compose dialog.
-- `TweetAdapter`: Connects tweet data to RecyclerView.
-- `TweetViewHolder`: Displays individual tweet items.
-- `Tweet`: Represents tweet data inside the Android client.
-- `TweetRepository`: Converts backend JSON responses into Tweet objects.
-- `ApiService`: Performs asynchronous GET and POST requests using Volley.
-- `server.js`: Handles API requests and database operations.
+## Local setup
 
-This separation allows UI and backend components to be developed independently.
+### Prerequisites
 
-## 5. Project Structure
+- Windows with Android Studio, Android SDK, and an emulator (tested with API 34).
+- Node.js and npm.
+- MySQL Server 8.x.
+- Java/Gradle toolchain compatible with this Android project.
 
-```text
-USTH-Twitter-Starter/
-│
-├── app/
-│   └── src/main/
-│       ├── java/com/example/twitterclient/
-│       │   ├── MainActivity.java
-│       │   │
-│       │   ├── model/
-│       │   │   └── Tweet.java
-│       │   │
-│       │   ├── ui/timeline/
-│       │   │   ├── TimelineFragment.java
-│       │   │   ├── TweetAdapter.java
-│       │   │   └── TweetViewHolder.java
-│       │   │
-│       │   ├── network/
-│       │   │   └── ApiService.java
-│       │   │
-│       │   └── repository/
-│       │       └── TweetRepository.java
-│       │
-│       ├── res/layout/
-│       │   ├── activity_main.xml
-│       │   ├── fragment_timeline.xml
-│       │   └── item_tweet.xml
-│       │
-│       └── AndroidManifest.xml
-│
-├── backend/
-│   ├── server.js
-│   ├── package.json
-│   ├── package-lock.json
-│   └── .env.example
-│
-├── build.gradle
-├── settings.gradle
-└── README.md
-```
+### 1. Set up MySQL
 
-The backend folder is maintained separately from the Android Gradle module. Some generated and configuration files are omitted from the diagram.
-
-## 6. Setup Instructions
-
-### 6.1 Requirements
-
-- Android Studio
-- Android SDK and Android emulator
-- Java JDK compatible with the Gradle configuration
-- Node.js and npm
-- MySQL Server 8.0
-
-### 6.2 Database Setup
-
-Connect to MySQL and create the project database:
+Connect to your local MySQL server, then run:
 
 ```sql
 CREATE DATABASE IF NOT EXISTS usth_twitter;
-
 USE usth_twitter;
+
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    display_name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    date_of_birth DATE,
+    bio VARCHAR(280) DEFAULT '',
+    profile_image_url TEXT,
+    banner_image_url TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
 CREATE TABLE IF NOT EXISTS posts (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -216,157 +103,161 @@ CREATE TABLE IF NOT EXISTS posts (
 );
 ```
 
-### 6.3 Backend Setup
+The current `posts` schema still stores an author username. A future migration should introduce `posts.user_id` referencing `users.id` and preserve existing test posts.
 
-Open a terminal inside the `backend` folder.
+### 2. Configure and start the backend
 
-Install dependencies:
+From the project root:
 
-```bash
+```powershell
+cd backend
 npm install
 ```
 
-Create a `.env` file:
+Create `backend/.env` with your **own local** settings:
 
 ```dotenv
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_USER=root
-DB_PASSWORD=YOUR_MYSQL_PASSWORD
+DB_PASSWORD=YOUR_LOCAL_MYSQL_PASSWORD
 DB_NAME=usth_twitter
 PORT=3000
+JWT_SECRET=REPLACE_WITH_A_RANDOM_SECRET
 ```
 
-Replace the placeholder password with your own local MySQL password.
+Generate a secret (run inside `backend`):
+
+```powershell
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+Copy the generated value into `JWT_SECRET`. Never commit `.env` or share a real signing secret.
 
 Start the backend:
 
-```bash
+```powershell
 node server.js
 ```
 
-Test the endpoints in a browser:
+Keep this terminal running. To verify connectivity, open `http://localhost:3000/api/health` on the development computer. A working backend should report that its database is connected.
 
-```text
-http://localhost:3000/api/health
-http://localhost:3000/api/posts
+### 3. Run the Android app
+
+1. Open the repository root in Android Studio and complete Gradle sync.
+2. Start the emulator and select the `app` run configuration.
+3. Keep MySQL and Express running on the host PC.
+4. Run the Android app, register a test account, then log in.
+
+The Android emulator reaches a server on the host PC at **`http://10.0.2.2:3000`**, configured in the Android networking classes. `localhost` inside the emulator points to the emulator itself, not the computer. A physical phone requires a reachable host LAN address or a deployed HTTPS backend.
+
+## REST API
+
+| Method | Route | Authentication | Purpose |
+|---|---|---|---|
+| `GET` | `/api/health` | No | Check API and DB availability |
+| `POST` | `/api/auth/register` | No | Create a user and hash their password |
+| `POST` | `/api/auth/login` | No | Verify credentials, issue JWT |
+| `GET` | `/api/posts` | No | List posts, newest first |
+| `POST` | `/api/posts` | **Bearer JWT** | Create a tweet as the authenticated user |
+
+### Registration
+
+```http
+POST /api/auth/register
+Content-Type: application/json
 ```
 
-The health endpoint should report that the database is connected.
-
-### 6.4 Android Setup
-
-1. Open the Android project root in Android Studio.
-2. Wait for Gradle Sync to finish.
-3. Make sure the Express server and MySQL are running.
-4. Start an Android emulator.
-5. Select the `app` run configuration.
-6. Run the application.
-
-The Android emulator connects to the local backend using:
-
-```text
-http://10.0.2.2:3000
+```json
+{
+  "username": "student2",
+  "displayName": "Second Student",
+  "email": "student2@example.com",
+  "password": "ExamplePassword456!"
+}
 ```
 
-This address is defined in `ApiService.java`.
+Returns HTTP **201** and safe account details; a duplicate username or email returns **409**. The password hash is never returned.
 
-**Important:** `10.0.2.2` is specific to the standard Android emulator. Running the application on a physical phone requires a different, reachable backend address.
+### Login
 
-## 7. Current Limitations
+```http
+POST /api/auth/login
+Content-Type: application/json
+```
 
-### Android Client
+```json
+{
+  "username": "student2",
+  "password": "ExamplePassword456!"
+}
+```
 
-- Uses a fixed demo username: `student`.
-- No user registration or login.
-- No profile pages or user search.
-- No following or follower functionality.
-- No likes, replies, retweets, or direct messages.
-- No image or video attachments.
-- No notifications.
-- No pull-to-refresh functionality.
-- No offline caching.
-- Tweets require a running backend to load.
-- Tweet IDs and timestamps are stored by the backend but are not yet represented in the Android `Tweet` model.
-- Full Android-to-backend behavior still needs emulator verification.
+Returns a `token` (JWT) and `user` object on success; invalid credentials return **401**. The JWT is signed using the server-side `JWT_SECRET` and expires after **24 hours**.
 
-### Backend
+### Publish a tweet
 
-- Only basic post creation and retrieval are supported.
-- No authentication or authorization.
-- No users table or user relationships.
-- The username is supplied directly by the client.
-- No post editing or deletion.
-- No pagination.
-- No media storage.
-- No production deployment.
+```http
+POST /api/posts
+Authorization: Bearer <JWT_FROM_LOGIN>
+Content-Type: application/json
+```
 
-### Security
+```json
+{
+  "content": "Hello from my account!"
+}
+```
 
-The project currently uses unencrypted HTTP for local development.
+The server verifies the JWT, looks up the account in MySQL, and saves the authenticated username with the post. The client **does not** send a `username` field for this endpoint. Missing, invalid, or expired JWTs should return **401**. A successful creation returns **201** with the new post.
 
-The Android manifest permits cleartext HTTP traffic so the emulator can reach the development server.
+## Session behavior and testing
 
-The backend uses local MySQL credentials stored in `.env`.
+- `LoginFragment` reads the JWT returned by `/api/auth/login`.
+- `SessionManager` saves the JWT and username using Android `SharedPreferences`.
+- `MainActivity` opens the timeline when a locally saved token exists, otherwise it shows Login.
+- `ApiService` sends `Authorization: Bearer <token>` when publishing posts.
+- This local session check **does not validate token expiry**; the server verifies the JWT for protected requests.
 
-**This version is intended for development and testing only.** Authentication, restricted database credentials, HTTPS and appropriate access controls are required before public deployment.
+There is currently no in-app Logout button. To reset a **test emulator** without changing code, use this from PowerShell:
 
-Do not commit `.env` or real database credentials to GitHub.
+```powershell
+& "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe" shell pm clear com.example.twitterclient
+```
 
-## 8. Development Roadmap
+This removes the app's local storage, including its saved token, and will also erase other local app data. It **does not** delete MySQL users or posts, and it does **not** revoke previously issued JWTs on the server. Relaunch the app to display Login.
 
-| Phase | Feature | Status |
-|---|---|---|
-| 1 | Basic Android timeline | Completed |
-| 2 | Local tweet composition | Completed |
-| 3 | Express server | Completed |
-| 4 | MySQL database integration | Completed |
-| 5 | GET/POST posts API | Completed |
-| 6 | Android networking with Volley | Implemented |
-| 7 | Android-to-backend end-to-end testing | Next |
-| 8 | User registration and login | Planned |
-| 9 | User profiles and search | Planned |
-| 10 | Likes, replies and retweets | Planned |
-| 11 | Followers and following | Planned |
-| 12 | Direct messages and media | Planned |
-| 13 | Deployment and additional testing | Planned |
+Useful backend test cases:
 
-## 9. Next Development Milestone
+- Register a new user; query MySQL to verify a bcrypt hash rather than a plaintext password.
+- Log in with correct credentials; confirm a JWT is returned.
+- Log in with a wrong password; expect HTTP 401.
+- Post with a valid JWT; confirm the resulting author matches the authenticated user.
+- Attempt `POST /api/posts` without a JWT; expect HTTP 401.
+- Restart the app and server; confirm posts remain in MySQL.
 
-The immediate next milestone is to verify the updated Android application against the running backend.
+## Current limitations and next steps
 
-Testing goals:
+1. **Identity model:** replace the `posts.username` text link with a `posts.user_id` foreign key, while migrating existing posts safely.
+2. **Session UX:** add logout, detect expired tokens, and redirect to Login when authentication fails.
+3. **Security:** move JWT credentials to encryption-backed storage; avoid real credentials in logs; use HTTPS for nonlocal deployment; apply rate limiting and stronger production authentication controls.
+4. **Product features:** profiles, editing user details, follows, likes, replies, search, and improved timeline refresh.
+5. **Quality:** automated backend and Android tests, error-state tests, migrations, and deployment documentation.
 
-- Confirm that tweets stored in MySQL appear in the Android timeline.
-- Publish a tweet from the Android application.
-- Confirm that the new tweet appears in `GET /api/posts`.
-- Restart the Android application and verify that the tweet remains visible.
-- Test the behavior when the backend is unavailable.
+This is a local **course prototype**. The current local HTTP and session-storage configuration is not suitable for production deployment as-is.
 
-Once these tests pass, the next major development stage will be user management and authentication.
+## Group workflow
 
-## 10. Reference Material
+The team should work from feature branches and submit pull requests to `main`. Keep database/API field names agreed across Android and Express before developing dependent features. Do not commit `backend/.env`, API credentials, database passwords, JWT secrets, or generated build artifacts.
 
-The application was designed with reference to the Twitter-Android-Client and Twitter-Server projects.
+Example workflow:
 
-Relevant USTH Android Development coursework includes:
+```powershell
+git switch -c feature/my-feature
+# edit and test files
+git add .
+git commit -m "Describe the completed feature"
+git push -u origin feature/my-feature
+```
 
-- Android Activities and Fragments
-- XML layouts and UI resources
-- RecyclerView and adapter patterns
-- Background tasks and asynchronous operations
-- HTTP networking with Volley
-- JSON data representation
-- Touch and user interaction
-
-The application is a separate implementation rather than a direct copy of the reference repositories.
-
-## 11. Project Status
-
-**Early development — Android and backend integrated at source-code level**
-
-The Android interface, Express backend and MySQL database are implemented. Database persistence and backend POST requests have been tested successfully.
-
-The updated Android networking layer has been added, but complete end-to-end verification on the emulator remains the next task.
-
-The project is intended to serve as a maintainable foundation for further development and group collaboration.
+The project is an independent USTH coursework implementation informed by Android/Node.js course material and Twitter-like app reference projects; it is not affiliated with X/Twitter.

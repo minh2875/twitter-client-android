@@ -16,9 +16,12 @@ import com.example.twitterclient.R;
 import com.example.twitterclient.model.Tweet;
 import com.example.twitterclient.repository.TweetRepository;
 import java.util.List;
+import android.widget.Button;
+import com.example.twitterclient.MainActivity;
+import com.example.twitterclient.auth.SessionManager;
 
 public class TimelineFragment extends Fragment {
-    private static final String DEMO_USERNAME = "student";
+
     private TweetAdapter adapter;
     private RecyclerView recyclerView;
     private TweetRepository repository;
@@ -36,11 +39,33 @@ public class TimelineFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         repository = new TweetRepository(requireContext());
         adapter = new TweetAdapter();
+        adapter.setOnAuthorClickListener(username -> {
+            ((MainActivity) requireActivity())
+                    .showUserProfile(username);
+        });
         recyclerView = view.findViewById(R.id.timeline_recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerView.setAdapter(adapter);
         view.findViewById(R.id.compose_button).setOnClickListener(v -> showComposeDialog());
         loadTweets();
+        Button logoutButton = view.findViewById(R.id.buttonLogout);
+
+        logoutButton.setOnClickListener(v -> {
+            // Delete the locally stored JWT and username
+            SessionManager session =
+                    new SessionManager(requireContext());
+
+            session.logout();
+
+            // Return to the login screen
+            ((MainActivity) requireActivity()).showLogin();
+        });
+        Button profileButton =
+                view.findViewById(R.id.buttonProfile);
+
+        profileButton.setOnClickListener(v -> {
+            ((MainActivity) requireActivity()).showProfile();
+        });
     }
 
     private void loadTweets() {
@@ -82,7 +107,8 @@ public class TimelineFragment extends Fragment {
                         return;
                     }
                     dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
-                    repository.createTweet(DEMO_USERNAME, text, new TweetRepository.Callback<Tweet>() {
+                    repository.createTweet(text,
+                            new TweetRepository.Callback<Tweet>() {
                         @Override
                         public void onSuccess(Tweet tweet) {
                             if (!isAdded()) return;

@@ -13,6 +13,21 @@ import java.util.List;
 public class TweetAdapter extends RecyclerView.Adapter<TweetViewHolder> {
     private final List<Tweet> tweets = new ArrayList<>();
 
+
+
+    public interface OnAuthorClickListener {
+        void onAuthorClick(String username);
+    }
+
+    private OnAuthorClickListener authorClickListener;
+
+    public void setOnAuthorClickListener(
+            OnAuthorClickListener listener
+    ) {
+        this.authorClickListener = listener;
+    }
+
+
     @NonNull
     @Override
     public TweetViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -21,10 +36,25 @@ public class TweetAdapter extends RecyclerView.Adapter<TweetViewHolder> {
         return new TweetViewHolder(view);
     }
 
+
     @Override
-    public void onBindViewHolder(@NonNull TweetViewHolder holder, int position) {
-        holder.bind(tweets.get(position));
+    public void onBindViewHolder(
+            @NonNull TweetViewHolder holder,
+            int position
+    ) {
+        Tweet tweet = tweets.get(position);
+
+        holder.bind(tweet);
+
+        holder.setOnAuthorClickListener(v -> {
+            if (authorClickListener != null) {
+                authorClickListener.onAuthorClick(
+                        tweet.getUsername()
+                );
+            }
+        });
     }
+
 
     @Override
     public int getItemCount() { return tweets.size(); }
