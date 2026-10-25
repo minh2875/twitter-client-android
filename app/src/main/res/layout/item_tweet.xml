@@ -39,9 +39,34 @@
                 <ImageView android:layout_width="0dp" android:layout_height="19dp"
                     android:layout_weight="1" android:src="@drawable/ui_icon_repost"
                     android:contentDescription="Repost (coming soon)" />
-                <ImageView android:layout_width="0dp" android:layout_height="19dp"
-                    android:layout_weight="1" android:src="@drawable/ui_icon_heart"
-                    android:contentDescription="Like (coming soon)" />
+                <!-- Nút Like có cả Icon và Số đếm lượt thích -->
+                <LinearLayout
+                    android:id="@+id/btn_like_container"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackgroundBorderless">
+
+                    <ImageView
+                        android:id="@+id/iv_like_icon"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:src="@drawable/ui_icon_heart"
+                        android:contentDescription="Like" />
+
+                    <TextView
+                        android:id="@+id/tv_like_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:text="0"
+                        android:textSize="12sp"
+                        android:textColor="#536471" />
+                </LinearLayout>
                 <ImageView android:layout_width="0dp" android:layout_height="19dp"
                     android:layout_weight="1" android:src="@drawable/ui_icon_share"
                     android:contentDescription="Share (coming soon)" />

@@ -1,14 +1,22 @@
 package com.example.twitterclient.repository;
 
 import android.content.Context;
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+import com.example.twitterclient.auth.SessionManager;
 import com.example.twitterclient.model.Tweet;
 import com.example.twitterclient.network.ApiService;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /** Converts API JSON into app models; keeps Volley out of the Fragment. */
 public class TweetRepository {
@@ -18,9 +26,11 @@ public class TweetRepository {
     }
 
     private final ApiService api;
+    private final Context context;
 
     public TweetRepository(Context context) {
-        api = new ApiService(context);
+        this.context = context;
+        this.api = new ApiService(context);
     }
 
     public void getTweets(Callback<List<Tweet>> callback) {
@@ -45,8 +55,6 @@ public class TweetRepository {
     ) {
         try {
             JSONObject body = new JSONObject();
-
-            // The backend identifies the author using JWT.
             body.put("content", content);
 
             api.createPost(
@@ -71,10 +79,39 @@ public class TweetRepository {
         }
     }
 
+    public void toggleLike(
+            int tweetId,
+            Response.Listener<JSONObject> listener,
+            Response.ErrorListener errorListener
+    ) {
+        // Sử dụng trực tiếp địa chỉ Localhost chuẩn của Android Emulator để tránh lỗi private BASE_URL
+        String url = "http://10.0.2.2:3000/api/posts/" + tweetId + "/like";
+
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.POST,
+                url,
+                null,
+                listener,
+                errorListener
+        ) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+                SessionManager sessionManager = new SessionManager(context);
+                String token = sessionManager.getToken();
+                if (token != null) {
+                    headers.put("Authorization", "Bearer " + token);
+                }
+                return headers;
+            }
+        };
+
+        // Sử dụng Volley trực tiếp để đưa request vào hàng đợi, loại bỏ hoàn toàn lỗi tên hàm của ApiService
+        Volley.newRequestQueue(context).add(request);
+    }
 
     private static Tweet toTweet(JSONObject item) throws JSONException {
-        String username = item.getString("username");
-        return new Tweet(username, username, item.getString("content"));
+        return new Tweet(item);
     }
 
     private static String describe(VolleyError error) {
